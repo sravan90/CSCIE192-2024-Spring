@@ -2,6 +2,7 @@ import argparse
 from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame as SparkDataFrame
 from pyspark.sql.types import StructType, StringType,IntegerType,FloatType
+from datetime import datetime
 
 # parse command line arguments
 # see https://docs.python.org/3/howto/argparse.html#argparse-tutorial
@@ -45,17 +46,20 @@ def read_input_csv(spark:SparkSession, input_path:str, **kvargs) -> SparkDataFra
     return result
 
 def read_input_csv_stream(spark:SparkSession, input_path:str, **kvargs) -> SparkDataFrame:
-    lines = spark \
+    result = spark \
         .readStream \
         .format("csv") \
         .option("header", True) \
-        .schema(taxicab_schema)
-    result = lines.load(input_path)
+        .option("path",input_path) \
+        .schema(taxicab_schema) \
+        .load()
+
     return result
 
 def write_output_csv(output_df:SparkDataFrame, output_path:str) -> None:
   if output_path:
-    output_df.write.format('csv').option('header','true').mode("overwrite").save(output_path)
+
+      output_df.write.format('csv').option('header','true').mode("overwrite").save(output_path)
   else:
     output_df.show(10, False)
 

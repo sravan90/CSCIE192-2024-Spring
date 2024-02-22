@@ -1,5 +1,6 @@
 import time
 import pandas as pd
+import pyarrow
 
 
 def calculate_summary_metrics(input_file, summary_output_file_path, relative_output_file_path):
@@ -12,19 +13,33 @@ def calculate_summary_metrics(input_file, summary_output_file_path, relative_out
         # Calculate summary metrics
         total_trips = len(df)
 
+        total_passengers = df['passenger_count'].sum()
+        average_fare_per_trip = df['fare_amount'].mean()
+        median_fare_per_trip = df['fare_amount'].median()
+
         # Calculate relative metrics
-        mean_fare_by_payment_type = df.groupby('payment_type')['fare_amount'].mean()
+        #mean_fare_by_payment_type = df.groupby('payment_type')['fare_amount'].mean()
+        average_fare_per_trip_by_vendor = df.groupby('VendorID')['fare_amount'].mean()
+        total_trip_distance_by_vendor = df.groupby('VendorID')['trip_distance'].sum()
+
 
         # Create summary output dataframe
         summary_df = pd.DataFrame({
-            'total number of trips': [total_trips]
+            'total number of trips': [total_trips],
+            'total passengers':[total_passengers],
+            'average fare per trip':[average_fare_per_trip],
+            'median fare per trip':[median_fare_per_trip]
         })
+
 
         # Create relative output dataframe
         relative_df = pd.DataFrame({
-            'payment_type': mean_fare_by_payment_type.index,
-            'mean fare per trip': mean_fare_by_payment_type.values
+            'VendorID':average_fare_per_trip_by_vendor.index,
+            'average fare trip by vendor': average_fare_per_trip_by_vendor.values,
+            'total trip distance by vendor': total_trip_distance_by_vendor.values
         })
+
+
 
 
 
@@ -58,3 +73,7 @@ if __name__ == "__main__":
         # Calculate the elapsed time
         elapsed_time = end_time - start_time
         print(f"Execution time: {elapsed_time} seconds")
+
+calculate_summary_metrics('/Users/sravanspoorthy/PycharmProjects/CSCIE192-2024-Spring/python/hw2/input/taxi_tripdata.csv',
+                         '/Users/sravanspoorthy/PycharmProjects/CSCIE192-2024-Spring/python/hw2/output/summary/summary.csv',
+                          '/Users/sravanspoorthy/PycharmProjects/CSCIE192-2024-Spring/python/hw2/output/relative/relative.csv' )
